@@ -8,6 +8,13 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
 from ..environment.env import Env, Grid, Map, Node
+import os
+from PIL import Image
+from PIL import Image, ImageDraw
+
+import imageio
+
+save_gif = True
 
 
 class Plot:
@@ -17,6 +24,8 @@ class Plot:
         self.env = env
         self.fig = plt.figure("planning")
         self.ax = self.fig.add_subplot()
+
+        self.frames = []  # Store frames for GIF
 
     def animation(self, path: list, name: str, cost: float = None, expand: list = None, history_pose: list = None,
                   predict_path: list = None, lookahead_pts: list = None, cost_curve: list = None,
@@ -37,7 +46,147 @@ class Plot:
         if ellipse is not None:
             self.plotEllipse(ellipse)
 
+
+
+
+        gif_path = rf'E:\GIT1\python_motion_planning\my_gif\20250616\\'+'aaa.gif'
+        gif_path1 = rf'E:\GIT1\python_motion_planning\my_gif\20250616\\'+'aaa1.gif'
+        if save_gif:
+            self._capture_frame()
+        if save_gif:
+            plt.savefig(gif_path[:-4]+'.png')
+
+        if save_gif: self._save_gif(gif_path)
+        if save_gif: self._save_gif2(gif_path1)
+
         plt.show()
+
+
+    def _capture_frame(self):
+        '''Save current plot as a frame for GIF.'''
+        plt.draw()
+        temp_path = "temp_frame.png"
+
+        # Save frame to a temporary file
+        plt.savefig(temp_path)
+
+        # Open the image and immediately close the file handle
+        with Image.open(temp_path) as img:
+            self.frames.append(img.copy())  # Copy the image data
+
+        # Now it's safe to delete the temp file
+        os.remove(temp_path)
+
+    from PIL import Image, ImageSequence
+
+    import imageio
+
+    def _save_gif(self, gif_path: str, loop_count: int = None):
+        if not self.frames:
+            print("No frames to save.")
+            return
+
+        processed_frames = []
+        for frame in self.frames:
+            if frame.mode == 'RGBA':
+                background = Image.new('RGB', frame.size, (255, 255, 255))
+                background.paste(frame, mask=frame.split()[3])
+                processed_frames.append(background)
+            else:
+                processed_frames.append(frame.convert('RGB'))
+
+        save_kwargs = {
+            "save_all": True,
+            "append_images": processed_frames[1:] if len(processed_frames) > 1 else [],
+            "duration": 100, # Milliseconds per frame
+            "optimize": True
+        }
+
+        if loop_count is not None:
+            save_kwargs["loop"] = loop_count
+
+        processed_frames[0].save(gif_path, **save_kwargs)
+
+
+    def _save_gif2(self, gif_path: str, loop_count: int = None):
+        '''
+        Combine frames into a GIF showing only the triangular area,
+        with outside content removed and frame resized to fit the triangle.
+        Triangle points: (0,0), (0,30), (50,30) in data coordinates.
+        '''
+        if not self.frames:
+            print("No frames to save.")
+            return
+
+        processed_frames = []
+        for frame in self.frames:
+            # Convert to RGBA to support transparency
+            if frame.mode == 'RGBA':
+                rgba_frame = frame.copy()
+            else:
+                rgba_frame = frame.convert('RGBA')
+
+            # Create mask for the triangle
+            mask = Image.new('L', rgba_frame.size, 0)
+            draw = ImageDraw.Draw(mask)
+
+            # Get image dimensions
+            width, height = rgba_frame.size
+
+            # Convert data coordinates (0-50, 0-30) to pixel coordinates
+            def data_to_pixel(x, y):
+                px = int((x / 50) * width)
+                py = height - int((y / 30) * height)  # Flip y-axis
+                return (px, py)
+
+            # Define triangle points in data coordinates
+            p1 = data_to_pixel(0, 0)  # Bottom left
+            p2 = data_to_pixel(0, 30)  # Top left
+            p3 = data_to_pixel(50, 30)  # Top right
+
+            # Draw the triangle mask
+            draw.polygon([p1, p2, p3], fill=255)
+
+            # Apply mask to keep only the triangle area
+            rgba_frame.putalpha(mask)
+
+            # Get the bounding box of the triangle
+            bbox = mask.getbbox()
+            if bbox:
+                # Crop to the triangle's bounding box
+                cropped = rgba_frame.crop(bbox)
+
+                # Create new transparent image with triangle content only
+                triangle_only = Image.new('RGBA', cropped.size, (0, 0, 0, 0))
+                triangle_mask = cropped.split()[3]  # Get alpha channel
+
+                # Paste the triangle content
+                triangle_only.paste(cropped, (0, 0), triangle_mask)
+
+                # Convert to RGB with white background for GIF compatibility
+                final_frame = Image.new('RGB', triangle_only.size, (255, 255, 255))
+                final_frame.paste(triangle_only, mask=triangle_only.split()[3])
+
+                processed_frames.append(final_frame)
+            else:
+                # If no triangle area, create empty frame
+                empty_frame = Image.new('RGB', (1, 1), (255, 255, 255))
+                processed_frames.append(empty_frame)
+
+        save_kwargs = {
+            "save_all": True,
+            "append_images": processed_frames[1:] if len(processed_frames) > 1 else [],
+            "duration": 100,  # Milliseconds per frame
+            "optimize": True,
+            "transparency": 0  # Set transparency color index
+        }
+
+        if loop_count is not None:
+            save_kwargs["loop"] = loop_count
+
+        processed_frames[0].save(gif_path, **save_kwargs)
+
+
 
     def plotEnv(self, name: str) -> None:
         '''
@@ -53,16 +202,17 @@ class Plot:
         if isinstance(self.env, Grid):
             obs_x = [x[0] for x in self.env.obstacles]
             obs_y = [x[1] for x in self.env.obstacles]
+            # plt.plot(obs_x, obs_y, "^b")
             plt.plot(obs_x, obs_y, "sk")
-
+            plt.show(block=False)  # Non-blocking display
         if isinstance(self.env, Map):
             ax = self.fig.add_subplot()
             # boundary
             for (ox, oy, w, h) in self.env.boundary:
                 ax.add_patch(patches.Rectangle(
                         (ox, oy), w, h,
-                        edgecolor='black',
-                        facecolor='black',
+                        edgecolor='blue',
+                        facecolor='yellow',
                         fill=True
                     )
                 )
@@ -70,8 +220,8 @@ class Plot:
             for (ox, oy, w, h) in self.env.obs_rect:
                 ax.add_patch(patches.Rectangle(
                         (ox, oy), w, h,
-                        edgecolor='black',
-                        facecolor='gray',
+                        edgecolor='pink',
+                        facecolor='golden',
                         fill=True
                     )
                 )
@@ -79,8 +229,8 @@ class Plot:
             for (ox, oy, r) in self.env.obs_circ:
                 ax.add_patch(patches.Circle(
                         (ox, oy), r,
-                        edgecolor='black',
-                        facecolor='gray',
+                        edgecolor='teal',
+                        facecolor='purple',
                         fill=True
                     )
                 )
@@ -105,27 +255,34 @@ class Plot:
         if isinstance(self.env, Grid):
             for x in expand:
                 count += 1
-                plt.plot(x.x, x.y, color="#dddddd", marker='s')
+                plt.plot(x.x, x.y, color="#cfdddd", marker='s')
                 plt.gcf().canvas.mpl_connect('key_release_event',
                                             lambda event: [exit(0) if event.key == 'escape' else None])
                 if count < len(expand) / 3:         length = 20
                 elif count < len(expand) * 2 / 3:   length = 30
-                else:                               length = 40
-                if count % length == 0:             plt.pause(0.001)
+                # else:                               length = 40
+                else:                               length = 80
+                if count % length == 0:
+                    plt.pause(0.001)
+                    if save_gif: self._capture_frame()
         
         if isinstance(self.env, Map):
             for x in expand:
                 count += 1
                 if x.parent:
                     plt.plot([x.parent[0], x.x], [x.parent[1], x.y], 
-                        color="#dddddd", linestyle="-")
+                        color="#eadddd", linestyle="-")
                     plt.gcf().canvas.mpl_connect('key_release_event',
                                                  lambda event:
                                                  [exit(0) if event.key == 'escape' else None])
                     if count % 10 == 0:
                         plt.pause(0.001)
+                        if save_gif: self._capture_frame()
+
 
         plt.pause(0.01)
+        if save_gif: self._capture_frame()
+
 
     def plotPath(self, path: list, path_color: str='#13ae00', path_style: str="-") -> None:
         '''
@@ -193,7 +350,9 @@ class Plot:
 
             plt.gcf().canvas.mpl_connect('key_release_event',
                                         lambda event: [exit(0) if event.key == 'escape' else None])
-            if i % 5 == 0:             plt.pause(0.03)
+            if i % 5 == 0:
+                plt.pause(0.03)
+                if save_gif: self._capture_frame()
 
     def plotCostCurve(self, cost_list: list, name: str) -> None:
         '''

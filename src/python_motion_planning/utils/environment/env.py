@@ -21,13 +21,16 @@ class Env(ABC):
         eps (float): tolerance for float comparison
 
     Examples:
-        >>> from python_motion_planning.utils import Env
-        >>> env = Env(30, 40)
+        # >>> from python_motion_planning.utils import Env
+        # >>> env = Env(30, 40)
     """
     def __init__(self, x_range: int, y_range: int, eps: float = 1e-6) -> None:
         # size of environment
         self.x_range = x_range  
         self.y_range = y_range
+        # self.x_range = 150
+        # self.y_range = 29
+
         self.eps = eps
 
     @property
@@ -53,6 +56,10 @@ class Grid(Env):
                         Node((0, 1),  None, 1, None), Node((1, 1),   None, sqrt(2), None),
                         Node((1, 0),  None, 1, None), Node((1, -1),  None, sqrt(2), None),
                         Node((0, -1), None, 1, None), Node((-1, -1), None, sqrt(2), None)]
+        # self.motions = [Node((-1, 0), None, 1, None), Node((-1, 1),  None, sqrt(2), None),
+        #                 Node((0, 1),  None, 1, None), Node((1, 1),   None, sqrt(2), None),
+        #                 Node((1, 0),  None, 1, None), Node((1, -1),  None, sqrt(2), None)]
+
         # obstacles
         self.obstacles = None
         self.obstacles_tree = None
@@ -66,12 +73,17 @@ class Grid(Env):
         obstacles = set()
 
         # boundary of environment
+
         for i in range(x):
             obstacles.add((i, 0))
             obstacles.add((i, y - 1))
         for i in range(y):
             obstacles.add((0, i))
             obstacles.add((x - 1, i))
+
+        # for i in range(x):
+        #     obstacles.add((i+3, 0))
+        #     obstacles.add((i-3, y - 1))
 
         self.update(obstacles)
 

@@ -8,11 +8,13 @@ import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from python_motion_planning import *
 
+
+
 if __name__ == '__main__':
     # Create environment with custom obstacles
     grid_env = Grid(51, 31)
     obstacles = grid_env.obstacles
-    for i in range(10, 21):
+    for i in range(3, 21):
         obstacles.add((i, 15))
     for i in range(15):
         obstacles.add((20, i))
@@ -58,8 +60,8 @@ if __name__ == '__main__':
     # plt = InformedRRT(start=(18, 8), goal=(37, 18), env=map_env)
 
     # plt = ACO(start=(5, 5), goal=(45, 25), env=grid_env)
-    # plt = PSO(start=(5, 5), goal=(45, 25), env=grid_env)
-
+    # plt = PSO(start=(5, 5), goal=(45, 25), env=grid_env,max_iter=10)
+    #
     plt.run()
 
     # -------------local planners-------------
