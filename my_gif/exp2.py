@@ -44,10 +44,10 @@ class GifCreator:
 
             width, height = img.size
 
-            pixel_left =
-            pixel_right =
-            pixel_upper =
-            pixel_lower =
+            pixel_left = 50
+            pixel_right = 250
+            pixel_upper = 230
+            pixel_lower = 385
 
 
             if pixel_upper > pixel_lower:

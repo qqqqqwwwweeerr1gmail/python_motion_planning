@@ -7,20 +7,29 @@
 import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from python_motion_planning import *
-
+import matplotlib
 
 
 if __name__ == '__main__':
     # Create environment with custom obstacles
     grid_env = Grid(51, 31)
     obstacles = grid_env.obstacles
+    # for i in range(3, 21):
+    #     obstacles.add((i, 15))
+    # for i in range(15):
+    #     obstacles.add((20, i))
+    # for i in range(15, 30):
+    #     obstacles.add((30, i))
+    # for i in range(16):
+    #     obstacles.add((40, i))
+
     for i in range(3, 21):
         obstacles.add((i, 15))
     for i in range(15):
         obstacles.add((20, i))
-    for i in range(15, 30):
-        obstacles.add((30, i))
-    for i in range(16):
+    for i in range(10, 30):
+        obstacles.add((25, i))
+    for i in range(21):
         obstacles.add((40, i))
     grid_env.update(obstacles)
 
@@ -40,19 +49,19 @@ if __name__ == '__main__':
     ]
     map_env.update(obs_rect=obs_rect, obs_circ=obs_circ)
 
-
+    # matplotlib.use('Agg')
     # -------------global planners-------------
-    plt = AStar(start=(5, 5), goal=(45, 25), env=grid_env)
-    # plt = DStar(start=(5, 5), goal=(45, 25), env=grid_env)
+    # plt = AStar(start=(5, 5), goal=(45, 25), env=grid_env)
+    # plt = DStar(start=(5, 5), goal=(45, 25), env=grid_env)...........................................................................
     # plt = DStarLite(start=(5, 5), goal=(45, 25), env=grid_env)
     # plt = Dijkstra(start=(5, 5), goal=(45, 25), env=grid_env)
-    # plt = GBFS(start=(5, 5), goal=(45, 25), env=grid_env)
+    plt = GBFS(start=(5, 5), goal=(45, 25), env=grid_env)
     # plt = JPS(start=(5, 5), goal=(45, 25), env=grid_env)
     # plt = ThetaStar(start=(5, 5), goal=(45, 25), env=grid_env)
     # plt = LazyThetaStar(start=(5, 5), goal=(45, 25), env=grid_env)
     # plt = SThetaStar(start=(5, 5), goal=(45, 25), env=grid_env)
     # plt = LPAStar(start=(5, 5), goal=(45, 25), env=grid_env)
-    # plt = VoronoiPlanner(start=(5, 5), goal=(45, 25), env=grid_env)
+    # plt = VoronoiPlanner(start=(5, 5), goal=(48, 25), env=grid_env)
 
     # plt = RRT(start=(18, 8), goal=(37, 18), env=map_env)
     # plt = RRTConnect(start=(18, 8), goal=(37, 18), env=map_env)
@@ -60,8 +69,7 @@ if __name__ == '__main__':
     # plt = InformedRRT(start=(18, 8), goal=(37, 18), env=map_env)
 
     # plt = ACO(start=(5, 5), goal=(45, 25), env=grid_env)
-    # plt = PSO(start=(5, 5), goal=(45, 25), env=grid_env,max_iter=10)
-    #
+    # plt = PSO(start=(5, 5), goal=(45, 25), env=grid_env,max_iter=100)
     plt.run()
 
     # -------------local planners-------------
@@ -76,8 +84,11 @@ if __name__ == '__main__':
     # -------------curve generators-------------
     # points = [(0, 0, 0), (10, 10, -90), (20, 5, 60), (30, 10, 120),
     #           (35, -5, 30), (25, -10, -120), (15, -15, 100), (0, -10, -90)]
-
+    #
     # plt = Dubins(step=0.1, max_curv=0.25)
+    # plt = Dubins(step=0.1, max_curv=0.5)
+    # plt = Dubins(step=0.1, max_curv=1)
+    # plt = Dubins(step=0.1, max_curv=0.1)
     # plt = Bezier(step=0.1, offset=3.0)
     # plt = Polynomial(step=2, max_acc=1.0, max_jerk=0.5)
     # plt = ReedsShepp(step=0.1, max_curv=0.25)
