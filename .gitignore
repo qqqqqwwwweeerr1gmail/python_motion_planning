@@ -48,3 +48,4 @@ tmp.*
 
 point_cloud/Depth2PC/
 *.ply
+*.rar
