@@ -149,19 +149,16 @@ if __name__ == '__main__':
     obstacles = grid_env.obstacles
 
 
-    # starts = [10,30,50,70]
-    # ends = [10,30,50,70]
-    # # ends = [20,40,60,80]
-    #
-    # for start in starts:
-    #     for end in ends:
-    #         blocks = gen_block(start=(start,end),end= (start+10,end+10))
-    #         [obstacles.add(i) for i in blocks]
-    #     #     break
-    #     # break
-    walkable =  np.load('/home/ws/git/python_motion_planning/point_cloud/walkability.npy')
-    obstacle_coords = np.argwhere(walkable == 0).tolist()  # Gets all (row, col) pairs where value is 0
-    obstacles = [(y, x) for x, y in np.argwhere(walkable == 0)]  # Swaps to (col,row) convention
+    starts = [10,30,50,70]
+    ends = [10,30,50,70]
+    # ends = [20,40,60,80]
+
+    for start in starts:
+        for end in ends:
+            blocks = gen_block(start=(start,end),end= (start+10,end+10))
+            [obstacles.add(i) for i in blocks]
+        #     break
+        # break
 
     grid_env.update(obstacles)
     print(grid_env)

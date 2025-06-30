@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import matplotlib.pyplot as plt
 from plyfile import PlyData
@@ -20,17 +22,20 @@ def create_walkability_map(ply_path, dpi=100, height_threshold=11.5):
     min_z, max_z = np.min(z), np.max(z)
     min_y, max_y = np.min(y), np.max(y)
 
-    # range_x = (max_x - min_x)
-    # range_y = (max_y - min_y)
-    # range_z = (max_z - min_z)
-    #
-    # grid_size_x = int(range_x/dpi)
-    # grid_size_y = int(range_x/dpi)
-    grid_size = int((max_x - min_x) / dpi)
+    range_x = (max_x - min_x)
+    range_y = (max_y - min_y)
+    range_z = (max_z - min_z)
+
+    grid_size_x = range_x/(math.sqrt(dpi*dpi/(range_x*range_z))*range_x)
+    grid_size_z = range_z/(math.sqrt(dpi*dpi/(range_x*range_z))*range_z)
+
+
+
+    # grid_size = int((max_x - min_x) / dpi)
 
     # Create grid bins
-    x_bins = np.arange(min_x, max_x + grid_size, grid_size)
-    z_bins = np.arange(min_z, max_z + grid_size, grid_size)
+    x_bins = np.arange(min_x, max_x + grid_size_x, grid_size_x)
+    z_bins = np.arange(min_z, max_z + grid_size_z, grid_size_z)
 
     # Initialize height extremes
     grid_max = np.full((len(x_bins) - 1, len(z_bins) - 1), -np.inf)
@@ -67,7 +72,7 @@ def create_walkability_map(ply_path, dpi=100, height_threshold=11.5):
     walkable[np.isinf(height_var)] = 0  # No data cells
     walkable[height_var > height_threshold] = 0  # High variation cells
 
-    return walkable, (min_x, min_z), grid_size
+    return walkable, (min_x, min_z), (grid_size_x,grid_size_z)
 
 
 def visualize_map(walkable_grid, dpi, max_height_var):
@@ -89,7 +94,8 @@ def visualize_map(walkable_grid, dpi, max_height_var):
     ax.grid(which='minor', color='black', linestyle='-', linewidth=0.5)
 
     # Customize appearance
-    ax.set_title(rf'{int(1000 / dpi)}米一格,高度差{max_height_var}米', fontsize=16)
+    # ax.set_title(rf'{float(1000 / dpi)}米一格,高度差{max_height_var}米', fontsize=16)
+    ax.set_title(rf'{float(1000 / dpi)}meters,high variation{max_height_var}meters', fontsize=16)
     ax.set_xlabel('X Grid Index', fontsize=12)
     ax.set_ylabel('Z Grid Index', fontsize=12)
 
@@ -147,4 +153,6 @@ if __name__ == "__main__":
     visualize_map(walkable, dpi, max_height_var)
 
     # Save data
-    save_walkability_data(walkable, origin, used_grid_size, "walkability_map.txt")
+    with open("walkability_map_0630_map.txt",'w')as file:
+        file.write(walkable)
+    save_walkability_data(walkable, origin, used_grid_size, "walkability_map_0630.txt")
