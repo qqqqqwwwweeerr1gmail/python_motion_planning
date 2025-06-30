@@ -126,11 +126,12 @@ def visualize_map(walkable_grid, dpi, max_height_var):
     plt.show()
 
 
-def save_walkability_data(walkable_grid, origin, grid_size, output_file):
+def save_walkability_data(walkable_grid, origin, used_grid_size, dpis,output_file):
     """Save walkability data to a text file"""
     with open(output_file, 'w') as f:
         f.write(f"Grid Origin (x,z): {origin[0]:.3f}, {origin[1]:.3f}\n")
-        f.write(f"Grid Size: {grid_size:.3f}\n")
+        f.write(f"Grid Size: {used_grid_size}\n")
+        f.write(f"dpis Size: {dpis}\n")
         f.write("Walkability Grid (1=walkable, 0=obstacle):\n")
         np.savetxt(f, walkable_grid, fmt='%d')
 
@@ -163,4 +164,4 @@ if __name__ == "__main__":
     visualize_map(walkable, dpi, max_height_var)
 
     # Save data
-    save_walkability_data(walkable, origin, used_grid_size, "walkability_map_0630_ip.txt")
+    save_walkability_data(walkable, origin, used_grid_size, dpis,"walkability_map_0630_ip.txt")

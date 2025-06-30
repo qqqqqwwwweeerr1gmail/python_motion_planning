@@ -50,3 +50,9 @@ point_cloud/Depth2PC/
 *.ply
 *.rar
 sunzeji/
+
+
+outputs/output.png
+outputs/output.gif
+
+
